@@ -15,23 +15,24 @@ struct Data: Identifiable {
 }
 
 struct mylist: View {
-    @State var chordProgressions = [
-        Data(id: 1, chordProgression: "F-G-Em-Am", mood: "cool", checked: false),
-        Data(id: 2, chordProgression: "D-Bm-G-A", mood: "cool", checked: false)
-    ]
+    @State var chordProgressions: [Data] = []
+    let url = URL(string: "https://chord-coach-server.onrender.com/api/chord-progressions")!
+//    @State var chordProgressions = [
+//        Data(id: 1, chordProgression: "F-G-Em-Am", mood: "cool", checked: false),
+//        Data(id: 2, chordProgression: "D-Bm-G-A", mood: "cool", checked: false)
+//    ]
     
     var body: some View {
         NavigationStack {
             List(0..<chordProgressions.count, id:\.self) { index in
                 Button {
-                    chordProgressions[index].checked.toggle()
                 } label: {
                     HStack {
-                        Image(systemName: chordProgressions[index].checked ? "checkmark.circle.fill" : "circle")
+                        Image(systemName:  "circle")
                         Text(chordProgressions[index].chordProgression)
                     }
                 }
-                .foregroundColor(.black)
+                .foregroundColor(.primary)
             }
         }
         .navigationTitle("Favorite List")
