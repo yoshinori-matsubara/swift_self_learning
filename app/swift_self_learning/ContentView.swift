@@ -4,18 +4,19 @@ struct ContentView: View {
     @State var mood = ""
     @State var resData: ContentView.res? = nil
     
-    struct element {
+    struct Element: Identifiable {
         var id: Int
         var chordProgression: String
+        var checked: Bool
     }
     
     struct res {
         var role: String
-        var content: [element]
+        var content: [Element]
     }
     
     var body: some View {
-        NavigationStack {
+        NavigationView {
             VStack(spacing: 20) {
                 TextField("Input the mood of song you want to compose", text: $mood)
                 Button(action: {
@@ -31,11 +32,11 @@ struct ContentView: View {
                                             let parsedData = try JSONSerialization.jsonObject(with: jsonData, options: []) as? [[String: Any]]
                                             
                                             if let parsedData = parsedData {
-                                                var elements: [element] = []
+                                                var elements: [Element] = []
                                                 for data in parsedData {
                                                     if let id = data["id"] as? Int,
                                                        let chordProgression = data["chordProgression"] as? String {
-                                                        let elementData = element(id: id, chordProgression: chordProgression)
+                                                        let elementData = Element(id: id, chordProgression: chordProgression, checked: false)
                                                         elements.append(elementData)
                                                     }
                                                 }
@@ -55,13 +56,13 @@ struct ContentView: View {
                 }) {
                     Text("Suggest")
                 }
-                ListView(resData: $resData)
+                ListView(resData: self.$resData)
                 NavigationLink(destination: mylist()) {
                     Text("Favorite List")
                 }
             }
+            .navigationTitle("Suggestion")
         }
-        .navigationTitle("Suggestion")
     }
 }
 
@@ -69,12 +70,18 @@ struct ListView: View {
     @Binding var resData: ContentView.res?
     
     var body: some View {
-        NavigationStack {
+        NavigationView {
             if let resData = resData {
-                List(resData.content, id: \.id) { element in
-                    HStack {
-                        Image(systemName: "circle")
-                        Text(element.chordProgression)
+                List(resData.content.indices, id: \.self) { index in
+                    let element = resData.content[index]
+                    Button(action: {
+                        self.resData?.content[index].checked.toggle()
+                        print(self.resData?.content[index].checked ?? false)
+                    }) {
+                        HStack {
+                            Image(systemName: element.checked ? "checkmark.circle.fill" : "circle")
+                            Text(element.chordProgression)
+                        }
                     }
                 }
             } else {
@@ -84,6 +91,13 @@ struct ListView: View {
         .navigationTitle("Chord Progressions")
     }
 }
+
+//struct MyListView: View {
+//    var body: some View {
+//        Text("Favorite List View")
+//            .navigationTitle("Favorite List")
+//    }
+//}
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
