@@ -137,11 +137,10 @@ struct ContentView: View {
                         Text("Go to Favorite List")
                     }
                 }
-                
-                if isLoading {
-                    LoadingView()
-                        .opacity(1)
-                }
+                .opacity(isLoading ? 0 : 1)
+
+                LoadingView()
+                    .opacity(isLoading ? 1 : 0)
             }
             .navigationTitle("Suggestion")
         }
