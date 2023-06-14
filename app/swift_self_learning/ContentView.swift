@@ -35,7 +35,9 @@ struct ContentView: View {
             ZStack {
                 VStack(spacing: 20) {
                     TextField("Input the mood of the song you want to compose", text: $mood)
-                    
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .frame(maxWidth: .infinity)
+                        .overlay(RoundedRectangle(cornerRadius: 4).stroke(Color.black.opacity(0.5), lineWidth: 1))
                     Button(action: {
                         isLoading = true
                         
@@ -163,6 +165,7 @@ struct ContentView: View {
 
                 LoadingView()
                     .opacity(isLoading ? 1 : 0)
+                    .scaleEffect(1.5)
             }
             .navigationTitle("Suggestion")
             .alert(isPresented: $showAlert) {
