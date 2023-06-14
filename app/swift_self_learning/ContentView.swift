@@ -3,11 +3,17 @@ import SwiftUI
 struct ContentView: View {
     @State var mood = ""
     @State var resData: ContentView.res? = nil
+    @State var isChecked :Bool = false
     
     struct Element: Identifiable {
         var id: Int
         var chordProgression: String
         var checked: Bool
+    }
+    
+    struct PostElement: Codable {
+        var chordProgressions: [String]
+        var mood: String
     }
     
     struct res {
@@ -22,7 +28,7 @@ struct ContentView: View {
                 Button(action: {
                     if let encodedMood = mood.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) {
                         if let url = URL(string: "https://chord-coach-server.onrender.com/api/chord-progressions/?mood=\(encodedMood)") {
-                            var request = URLRequest(url: url)
+                            let request = URLRequest(url: url)
                             URLSession.shared.dataTask(with: request) { data, response, error in
                                 guard let data = data else { return }
                                 do {
@@ -56,9 +62,52 @@ struct ContentView: View {
                 }) {
                     Text("Suggest")
                 }
-                ListView(resData: self.$resData)
+                ListView(resData: self.$resData, isChecked: self.$isChecked)
+                
+                // Add to Favorite Listボタン
+                Button(action: {
+                    if let content = self.resData?.content {
+                        var chordProgressions: [String] = []
+                        for item in content {
+                            if item.checked {
+                                chordProgressions.append(item.chordProgression)
+                            }
+                        }
+                        let postData = PostElement(chordProgressions: chordProgressions, mood: self.mood)
+                        print(postData)
+                        let encoder = JSONEncoder()
+                        guard let httpBody = try? encoder.encode(postData) else {return}
+                        print(httpBody)
+                        let url = URL(string: "https://chord-coach-server.onrender.com/api/chord-progressions")!
+                        var request = URLRequest(url: url)
+                        request.httpMethod = "POST"
+                        request.setValue("Application/json", forHTTPHeaderField: "Content-Type")
+                        request.httpBody = httpBody
+                        URLSession.shared.dataTask(with: request) {(data, response, error) in
+                            if let error = error {
+                                print("Failed to get item info: \(error)")
+                                return;
+                            }
+                            if let response = response as? HTTPURLResponse {
+                                if !(200...299).contains(response.statusCode) {
+                                    print("Response status code does not indicate success: \(response.statusCode)")
+                                    return
+                                }
+                            }
+                            if let data = data {
+                                print("Chord progression saved successfully!")
+                            } else {
+                                print("Unexpected error.")
+                            }
+                        }.resume()
+                    }
+                    
+                }) {
+                    Text("Add to Favorite List")
+                }
+                .opacity(isChecked ? 1 : 0)
                 NavigationLink(destination: mylist()) {
-                    Text("Favorite List")
+                    Text("Go to Favorite List")
                 }
             }
             .navigationTitle("Suggestion")
@@ -68,6 +117,7 @@ struct ContentView: View {
 
 struct ListView: View {
     @Binding var resData: ContentView.res?
+    @Binding var isChecked: Bool
     
     var body: some View {
         NavigationView {
@@ -76,7 +126,15 @@ struct ListView: View {
                     let element = resData.content[index]
                     Button(action: {
                         self.resData?.content[index].checked.toggle()
-                        print(self.resData?.content[index].checked ?? false)
+                        
+                        // isCheckedの制御
+                        if let checkedArray = self.resData?.content.filter ({ $0.checked == true }) {
+                            if checkedArray.count > 0 {
+                                isChecked = true
+                            } else {
+                                isChecked = false
+                            }
+                        }
                     }) {
                         HStack {
                             Image(systemName: element.checked ? "checkmark.circle.fill" : "circle")
@@ -91,13 +149,6 @@ struct ListView: View {
         .navigationTitle("Chord Progressions")
     }
 }
-
-//struct MyListView: View {
-//    var body: some View {
-//        Text("Favorite List View")
-//            .navigationTitle("Favorite List")
-//    }
-//}
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
