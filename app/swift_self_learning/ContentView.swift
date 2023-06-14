@@ -1,5 +1,6 @@
 import SwiftUI
 
+
 struct LoadingView: View {
     var body: some View {
         ProgressView("Now Loading")
@@ -11,6 +12,7 @@ struct ContentView: View {
     @State var resData: ContentView.res? = nil
     @State var isChecked: Bool = false
     @State var isLoading: Bool = false
+    @State var showAlert: Bool = false
     
     struct Element: Identifiable {
         var id: Int
@@ -82,20 +84,29 @@ struct ContentView: View {
                         }
                     }) {
                         Text("Suggest")
+                            .bold()
+                            .padding()
+                            .frame(width: 100, height: 50)
+                            .foregroundColor(Color.white)
+                            .background(Color.blue)
+                            .cornerRadius(25)
                     }
+                    .opacity(mood.count > 0 ? 1 : 0)
                     
                     ListView(resData: self.$resData, isChecked: self.$isChecked)
                     
                     Button(action: {
-                        if let content = self.resData?.content {
+                        if var content = self.resData?.content {
                             var chordProgressions: [String] = []
                             
-                            for item in content {
-                                if item.checked {
-                                    chordProgressions.append(item.chordProgression)
+                            for index in content.indices {
+                                if content[index].checked {
+                                    chordProgressions.append(content[index].chordProgression)
+                                    content[index].checked = false
                                 }
                             }
-                            
+                            isChecked = false
+                            self.resData?.content = content
                             let postData = PostElement(chordProgressions: chordProgressions, mood: self.mood)
                             let encoder = JSONEncoder()
                             
@@ -127,9 +138,20 @@ struct ContentView: View {
                                     print("Unexpected error.")
                                 }
                             }.resume()
+                            
+                            DispatchQueue.main.async {
+                                self.showAlert = true
+                                
+                            }
                         }
                     }) {
                         Text("Add to Favorite List")
+                            .bold()
+                            .padding()
+                            .frame(width: 200, height: 50)
+                            .foregroundColor(Color.white)
+                            .background(Color.blue)
+                            .cornerRadius(25)
                     }
                     .opacity(isChecked ? 1 : 0)
                     
@@ -143,6 +165,13 @@ struct ContentView: View {
                     .opacity(isLoading ? 1 : 0)
             }
             .navigationTitle("Suggestion")
+            .alert(isPresented: $showAlert) {
+                Alert(
+                    title: Text("Success"),
+                    message: Text("Chord progression saved successfully!"),
+                    dismissButton: .default(Text("OK"))
+                )
+            }
         }
     }
 }

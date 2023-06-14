@@ -6,7 +6,7 @@ struct mylist: View {
     }
     
     @StateObject var resData = ResData()
-    @State var isChecked :Bool = false
+    @State var isChecked: Bool = false
     
     struct Element: Identifiable, Decodable {
         var id: Int
@@ -29,27 +29,34 @@ struct mylist: View {
         NavigationStack {
             VStack(spacing: 20) {
                 if !resData.content.isEmpty {
-                    List(resData.content.indices, id: \.self) { index in
-                        Button(action: {
-                            resData.content[index].checked.toggle()
-                            // isCheckedの制御
-                            let checkedArray = resData.content.filter ({ $0.checked == true })
-                            if checkedArray.count > 0 {
-                                isChecked = true
-                            } else {
-                                isChecked = false
+                    VStack {
+                        List {
+                            ForEach(resData.content.indices, id: \.self) { index in
+                                Button(action: {
+                                    resData.content[index].checked.toggle()
+                                    // isCheckedの制御
+                                    let checkedArray = resData.content.filter { $0.checked }
+                                    isChecked = !checkedArray.isEmpty
+                                }) {
+                                    HStack {
+                                        Image(systemName: resData.content[index].checked ? "checkmark.circle.fill" : "circle")
+                                        VStack(alignment: .leading) {
+                                            Text(resData.content[index].chordProgression)
+                                            Text(resData.content[index].mood)
+                                                .font(.caption)
+                                                .foregroundColor(.secondary)
+                                        }
+                                    }
+                                }
+                                .foregroundColor(.primary)
                             }
-                            
-                        }) {
-                            HStack {
-                                Image(systemName: resData.content[index].checked ? "checkmark.circle.fill" : "circle")
-                                Text(resData.content[index].chordProgression)
-                                Text(resData.content[index].mood)
-                            }
+                            .listRowInsets(EdgeInsets()) // リストの余白を調整
                         }
-                        .foregroundColor(.primary)
+                        .listStyle(.plain) // リストスタイルをプレーンに設定
+                        .padding(.horizontal)
                     }
                 }
+                
                 //ここにremoveボタン実装
                 Button(action: {
                     let content = self.resData.content
@@ -62,17 +69,17 @@ struct mylist: View {
                     }
                     print(deleteBody)
                     let encoder = JSONEncoder()
-                    guard let httpBody = try? encoder.encode(deleteBody) else {return}
+                    guard let httpBody = try? encoder.encode(deleteBody) else { return }
                     print(httpBody)
                     let url = URL(string: "https://chord-coach-server.onrender.com/api/chord-progressions")!
                     var request = URLRequest(url: url)
                     request.httpMethod = "DELETE"
                     request.setValue("Application/json", forHTTPHeaderField: "Content-Type")
                     request.httpBody = httpBody
-                    URLSession.shared.dataTask(with: request) {(data, response, error) in
+                    URLSession.shared.dataTask(with: request) { (data, response, error) in
                         if let error = error {
                             print("Failed to get item info: \(error)")
-                            return;
+                            return
                         }
                         if let response = response as? HTTPURLResponse {
                             if !(200...299).contains(response.statusCode) {
@@ -97,6 +104,7 @@ struct mylist: View {
                                         self.resData.content = elements
                                     }
                                     print("Chord progression removed successfully!")
+                                    isChecked = false
                                 }
                             } catch let error {
                                 print(error)
@@ -105,16 +113,20 @@ struct mylist: View {
                             print("Unexpected error.")
                         }
                     }.resume()
-                    
-                    
                 }) {
                     Text("Remove From Favorite List")
+                        .bold()
+                        .padding()
+                        .frame(width: 250, height: 50)
+                        .foregroundColor(Color.white)
+                        .background(Color.blue)
+                        .cornerRadius(25)
                 }
                 .opacity(isChecked ? 1 : 0)
             }
             .onAppear {
                 let url = URL(string: "https://chord-coach-server.onrender.com/api/my-chord-progressions")!
-                var request = URLRequest(url: url)
+                let request = URLRequest(url: url)
                 URLSession.shared.dataTask(with: request) { data, response, error in
                     guard let data = data else { return }
                     
