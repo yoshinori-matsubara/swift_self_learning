@@ -2,6 +2,9 @@
 
 This app suggests chord progressions which are match with the mood you entered.
 
+# Demo
+https://github.com/yoshinori-matsubara/swift_self_learning/assets/110013646/816b3e1f-3ec2-4d26-853f-b74cbde9c1fc
+
 # How to use
 
 1. Enter mood of song you want to compose in input box.
