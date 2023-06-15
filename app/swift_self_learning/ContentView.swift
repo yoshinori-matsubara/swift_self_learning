@@ -1,6 +1,5 @@
 import SwiftUI
 
-
 struct LoadingView: View {
     var body: some View {
         ProgressView("Now Loading")
@@ -9,12 +8,12 @@ struct LoadingView: View {
 
 struct ContentView: View {
     @State var mood = ""
-    @State var resData: ContentView.res? = nil
+    @State var resData: ContentView.Res? = nil
     @State var isChecked: Bool = false
     @State var isLoading: Bool = false
     @State var showAlert: Bool = false
     
-    struct Element: Identifiable {
+    struct Element: Identifiable, Codable {
         var id: Int
         var chordProgression: String
         var checked: Bool
@@ -25,10 +24,31 @@ struct ContentView: View {
         var mood: String
     }
     
-    struct res {
+    struct Res: Codable {
         var role: String
         var content: [Element]
     }
+    
+    //    public struct ContentElement: Decodable {
+    //        public var id: Int
+    //        public var chordProgression: String
+    //
+    //        public var description: String {
+    //            return "\(id) \(chordProgression)"
+    //        }
+    //    }
+    //
+    //    public struct JsonRes: Decodable, CustomStringConvertible {
+    //        public var role: String
+    //        public var content: [ContentElement]
+    //
+    //        public var description: String {
+    //            return """
+    //            role: \(role)
+    //            content: \(content)
+    //            """
+    //        }
+    //    }
     
     var body: some View {
         NavigationView {
@@ -67,7 +87,7 @@ struct ContentView: View {
                                                     }
                                                     
                                                     DispatchQueue.main.async {
-                                                        self.resData = res(role: "assistant", content: elements)
+                                                        self.resData = Res(role: "assistant", content: elements)
                                                     }
                                                 }
                                             }
@@ -157,12 +177,12 @@ struct ContentView: View {
                     }
                     .opacity(isChecked ? 1 : 0)
                     
-                    NavigationLink(destination: mylist()) {
+                    NavigationLink(destination: MyList()) {
                         Text("Go to Favorite List")
                     }
                 }
                 .opacity(isLoading ? 0 : 1)
-
+                
                 LoadingView()
                     .opacity(isLoading ? 1 : 0)
                     .scaleEffect(1.5)
@@ -180,7 +200,7 @@ struct ContentView: View {
 }
 
 struct ListView: View {
-    @Binding var resData: ContentView.res?
+    @Binding var resData: ContentView.Res?
     @Binding var isChecked: Bool
     
     var body: some View {

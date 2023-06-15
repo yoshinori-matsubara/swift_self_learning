@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct mylist: View {
+struct MyList: View {
     class ResData: ObservableObject {
         @Published var content: [Element] = []
     }
@@ -57,7 +57,7 @@ struct mylist: View {
                     }
                 }
                 
-                //ここにremoveボタン実装
+                //removeボタン
                 Button(action: {
                     let content = self.resData.content
                     var deleteBody: [DeleteElement] = []
@@ -67,10 +67,8 @@ struct mylist: View {
                             deleteBody.append(deleteElement)
                         }
                     }
-                    print(deleteBody)
                     let encoder = JSONEncoder()
                     guard let httpBody = try? encoder.encode(deleteBody) else { return }
-                    print(httpBody)
                     let url = URL(string: "https://chord-coach-server.onrender.com/api/chord-progressions")!
                     var request = URLRequest(url: url)
                     request.httpMethod = "DELETE"
@@ -127,9 +125,9 @@ struct mylist: View {
             .onAppear {
                 let url = URL(string: "https://chord-coach-server.onrender.com/api/my-chord-progressions")!
                 let request = URLRequest(url: url)
+                
                 URLSession.shared.dataTask(with: request) { data, response, error in
                     guard let data = data else { return }
-                    
                     do {
                         let jsonArray = try JSONSerialization.jsonObject(with: data, options: []) as? [[String: Any]]
                         if let jsonArray = jsonArray {
@@ -158,6 +156,6 @@ struct mylist: View {
 
 struct mylist_Previews: PreviewProvider {
     static var previews: some View {
-        mylist()
+        MyList()
     }
 }
