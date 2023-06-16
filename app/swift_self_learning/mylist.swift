@@ -112,7 +112,7 @@ struct MyList: View {
                         }
                     }.resume()
                 }) {
-                    Text("Remove From Favorite List")
+                    Text("Remove from Favorite List")
                         .bold()
                         .padding()
                         .frame(width: 250, height: 50)
